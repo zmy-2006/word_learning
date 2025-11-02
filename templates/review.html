@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正在复习 - {{ word.word }}</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        .progress-text { font-size: 16px; color: #6c757d; margin-bottom: 8px; }
+        .progress-bar { width: 100%; background-color: #e9ecef; border-radius: 8px; height: 10px; overflow: hidden; margin-bottom: 25px; }
+        .progress { 
+            width: {{ (progress.current / progress.total) * 100 }}%; 
+            background-color: var(--primary-color); 
+            height: 100%; 
+            transition: width 0.3s ease; 
+        }
+
+        /* 卡片翻转核心样式 */
+        .flashcard-container {
+            perspective: 1000px;
+            width: 100%;
+            height: 300px;
+            cursor: pointer;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard-container.is-flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden; /* Safari */
+            backface-visibility: hidden;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .card-front {
+            /* 正面样式 */
+        }
+        .card-back {
+            /* 背面样式 */
+            transform: rotateY(180deg);
+        }
+
+        .card-front h2 { font-size: 42px; color: #212529; margin: 0; }
+        .card-front .pos { font-size: 20px; color: #6c757d; margin: 10px 0 0 0; font-style: italic; }
+        
+        .card-back p { font-size: 22px; color: #343a40; margin: 8px 0; }
+        .card-back em { font-size: 18px; color: #6c757d; }
+        
+        #show-def-btn { display: none; /* 隐藏原按钮，点击卡片翻转 */ }
+
+        #answer-btns {
+            margin-top: 30px;
+            display: none; /* 默认隐藏 */
+            gap: 15px;
+            justify-content: center;
+        }
+        .is-flipped + #answer-btns {
+            display: flex; /* 翻转后显示 */
+        }
+        #answer-btns button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+            transition: opacity 0.2s, transform 0.1s;
+            flex-grow: 1; /* 按钮平分宽度 */
+            max-width: 200px;
+        }
+        #answer-btns button:hover { opacity: 0.85; }
+        #answer-btns button:active { transform: scale(0.97); }
+        .btn-forgot { background-color: var(--danger-color); }
+        .btn-remembered { background-color: var(--success-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="progress-text">{{ progress.current }} / {{ progress.total }}</div>
+        <div class="progress-bar">
+            <div class="progress"></div>
+        </div>
+
+        <div class="flashcard-container" id="flashcard-container">
+            <div class="card-inner">
+                <div class="card-face card-front">
+                    <h2>{{ word.word }}</h2>
+                    <p class="pos">{{ word.pos }}</p>
+                </div>
+                <div class="card-face card-back">
+                    <p>{{ word.def }}</p>
+                    {% if word.syn %}
+                        <p><em>Syn: {{ word.syn }}</em></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div id="answer-btns">
+            <form action="/record_answer" method="post" style="display: contents;">
+                <input type="hidden" name="answer" value="forgot">
+                <button type="submit" class="btn-forgot">没记住</button>
+            </form>
+            <form action="/record_answer" method="post" style="display: contents;">
+                <input type="hidden" name="answer" value="remembered">
+                <button type="submit" class="btn-remembered">记住了</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const cardContainer = document.getElementById('flashcard-container');
+        
+        // 点击卡片时翻转
+        cardContainer.addEventListener('click', () => {
+            cardContainer.classList.toggle('is-flipped');
+        });
+    </script>
+</body>
+</html>
